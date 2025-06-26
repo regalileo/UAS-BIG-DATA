@@ -12,28 +12,29 @@ label_encoder = joblib.load("label_encoder.pkl")
 st.set_page_config(page_title="Klasifikasi Sentimen Komentar", page_icon="💬", layout="centered")
 st.markdown("""
     <style>
-    .main {
-        background-color: #f4f6f8;
-    }
-    .stTextArea textarea {
-        background-color: #ffffff;
-    }
-    .title {
-        text-align: center;
-        font-size: 2.2em;
-        font-weight: bold;
-        color: #333333;
-    }
-    .result {
-        font-size: 1.3em;
-        font-weight: bold;
-        color: #ffffff;
-        background-color: #4caf50;
-        padding: 0.5em;
-        border-radius: 8px;
-        text-align: center;
-    }
-    </style>
+.main {
+    background-color: #f4f6f8;
+}
+.stTextArea textarea {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+.title {
+    text-align: center;
+    font-size: 2.2em;
+    font-weight: bold;
+    color: #333333;
+}
+.result {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #4caf50;
+    padding: 0.5em;
+    border-radius: 8px;
+    text-align: center;
+}
+</style>
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="title">💬 Sistem Klasifikasi Sentimen Komentar</div>', unsafe_allow_html=True)
