@@ -18,6 +18,7 @@ st.markdown("""
 .stTextArea textarea {
     background-color: #ffffff !important;
     color: #000000 !important;
+    caret-color: #000000 !important;
 }
 .title {
     text-align: center;
