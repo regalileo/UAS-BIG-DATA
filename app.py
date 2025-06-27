@@ -1,4 +1,4 @@
-# app.py - Streamlit Clustering Viewer dan Uji Komentar Baru
+# app.py - Streamlit Clustering Viewer + Deteksi Komentar + Statistik Klaster Interaktif
 import streamlit as st
 import joblib
 import pandas as pd
@@ -7,7 +7,10 @@ import seaborn as sns
 import re
 import requests
 from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn.feature_selection import mutual_info_classif
 from wordcloud import WordCloud
+import numpy as np
 
 st.set_page_config(page_title="Klasterisasi Komentar Netizen", layout="wide")
 
@@ -42,13 +45,13 @@ def deteksi_ujaran_kebencian(teks):
     return any(kata in teks.split() for kata in kata_kasar)
 
 st.markdown("""
-    <h2 style='text-align: center;'>Visualisasi & Deteksi Klaster Komentar Netizen</h2>
-    <p style='text-align: center;'>Metode TF-IDF dan KMeans Clustering</p>
+    <h2 style='text-align: center;'>Visualisasi, Statistik, dan Deteksi Klaster Komentar</h2>
+    <p style='text-align: center;'>TF-IDF + KMeans dengan Deteksi Ujaran Kebencian</p>
 """, unsafe_allow_html=True)
 
 st.write("---")
 
-# --- Siapkan data untuk visualisasi ---
+# --- Rehitung PCA ---
 X = vectorizer.transform(df['clean'])
 pca = PCA(n_components=2, random_state=42)
 X_pca = pca.fit_transform(X.toarray())
@@ -56,20 +59,24 @@ df['pca1'] = X_pca[:,0]
 df['pca2'] = X_pca[:,1]
 df['is_hate'] = df['clean'].apply(deteksi_ujaran_kebencian)
 
-# --- Layout 2 kolom utama ---
+# --- Centroid ---
+centroids = model.cluster_centers_
+centroids_pca = pca.transform(centroids)
+
+# --- Layout utama ---
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.subheader("Visualisasi Klaster dan Distribusi")
+    st.subheader("Visualisasi PCA & Donut Chart")
 
-    # Plot PCA
     fig1, ax1 = plt.subplots(figsize=(8,5))
     sns.scatterplot(data=df, x='pca1', y='pca2', hue='cluster', palette='tab10', s=60, ax=ax1)
-    ax1.set_title("Pemetaan PCA Klaster Komentar")
+    ax1.scatter(centroids_pca[:, 0], centroids_pca[:, 1], c='black', s=200, marker='X', label='Centroid')
+    ax1.set_title("Pemetaan PCA + Centroid Klaster")
     ax1.grid(True)
+    ax1.legend()
     st.pyplot(fig1)
 
-    # Donut Chart
     cluster_counts = df['cluster'].value_counts().sort_index()
     labels = [f"Cluster {i}: {n}" for i, n in cluster_counts.items()]
     fig2, ax2 = plt.subplots()
@@ -77,6 +84,19 @@ with col1:
         autopct="%1.1f%%", startangle=90, wedgeprops={'width':0.5}, textprops={'fontsize': 9})
     ax2.axis("equal")
     st.pyplot(fig2)
+
+    with st.expander("Statistik Deskriptif per Klaster"):
+        df_stats = df.groupby('cluster')[['pca1','pca2']].agg(['mean','std','min','max'])
+        st.dataframe(df_stats.round(2))
+
+    with st.expander("Top Fitur Pembeda (Mutual Info)"):
+        X_arr = X.toarray()
+        mi_scores = mutual_info_classif(X_arr, df['cluster'], discrete_features=True)
+        top_idx = np.argsort(mi_scores)[::-1][:10]
+        top_words = [vectorizer.get_feature_names_out()[i] for i in top_idx]
+        top_vals = mi_scores[top_idx]
+        top_df = pd.DataFrame({"Fitur": top_words, "MI Score": top_vals})
+        st.dataframe(top_df)
 
 with col2:
     st.subheader("Uji Komentar Baru")
