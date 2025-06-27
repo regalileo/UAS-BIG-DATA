@@ -1,6 +1,8 @@
 streamlit
-pandas
 scikit-learn
-joblib
+pandas
 matplotlib
 seaborn
+joblib
+wordcloud
+requests
