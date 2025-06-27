@@ -41,12 +41,14 @@ def clean_text(text):
 # --- Load kata kasar dari GitHub ---
 @st.cache_data
 def load_kata_kasar_from_url():
-    url = "https://raw.githubusercontent.com/regalileo/UAS-BIG-DATA/b8349655afe858b4860a4a9b868bbae0b7cf8e89/kata_kasar.txt"
-    response = requests.get(url)
-    if response.status_code == 200:
+    url = "https://raw.githubusercontent.com/regalileo/UAS-BIG-DATA/main/kata_kasar.txt"
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()  # Raise error if response is bad
         lines = response.text.splitlines()
         return set(k.strip() for k in lines if k.strip())
-    else:
+    except Exception as e:
+        st.warning(f"Gagal memuat kata kasar dari URL: {e}")
         return set()
 
 kata_kasar = load_kata_kasar_from_url()
