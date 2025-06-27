@@ -68,7 +68,8 @@ def get_pca(df_in, vectorizer_in):
     x_pca_local = pca_local.fit_transform(X_local.toarray())
     return X_local, pca_local, x_pca_local
 
-X, pca, X_pca = get_pca(df, vectorizer)
+with st.spinner("Menghitung ulang PCA..."):
+    X, pca, X_pca = get_pca(df, vectorizer)
 df['pca1'] = X_pca[:, 0]
 df['pca2'] = X_pca[:, 1]
 df['is_hate'] = df['clean'].apply(deteksi_ujaran_kebencian)
