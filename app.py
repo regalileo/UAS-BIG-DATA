@@ -111,7 +111,7 @@ with col1:
             mi_scores = mutual_info_classif(X_arr, df['cluster'], discrete_features=True)
             top_idx = np.argsort(mi_scores)[::-1][:10]
             top_words = [vectorizer.get_feature_names_out()[i] for i in top_idx]
-            top_vals = mi_scores[top_idx]https://colab.research.google.com/?authuser=1
+            top_vals = mi_scores[top_idx]
             top_df = pd.DataFrame({"Fitur": top_words, "MI Score": top_vals})
             st.dataframe(top_df)
 
