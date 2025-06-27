@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import re
 from sklearn.decomposition import PCA
+from wordcloud import WordCloud
 
 st.set_page_config(page_title="Klasterisasi Komentar Netizen", layout="wide")
 
@@ -22,6 +23,16 @@ def clean_text(text):
     text = re.sub(r"\d+", "", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text
+
+# --- Kata kasar ---
+kata_kasar = {
+    'tolol', 'anjing', 'mampus', 'bangsat', 'goblok', 'tai', 'kontol', 'bajingan', 'brengsek',
+    'keparat', 'kampret', 'idiot', 'bego', 'sinting', 'gila', 'laknat', 'brengsek', 'fuck', 'fucking',
+    'shit', 'bitch', 'kafir', 'pengkhianat', 'komunis', 'aseng', 'cina', 'penjilat', 'pantek', 'setan'
+}
+
+def deteksi_ujaran_kebencian(teks):
+    return any(kata in teks.split() for kata in kata_kasar)
 
 st.markdown("""
     <h2 style='text-align: center;'>Visualisasi & Deteksi Klaster Komentar Netizen</h2>
@@ -53,6 +64,19 @@ ax2.pie(cluster_counts, labels=[f"Cluster {i}" for i in cluster_counts.index],
 ax2.axis("equal")
 st.pyplot(fig2)
 
+# --- WordCloud Komentar Kasar ---
+st.subheader("WordCloud Komentar Mengandung Ujaran Kebencian")
+df['is_hate'] = df['clean'].apply(deteksi_ujaran_kebencian)
+text_kasar = " ".join(df[df['is_hate']]['clean'])
+if text_kasar:
+    wc_fig, wc_ax = plt.subplots(figsize=(10, 5))
+    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text_kasar)
+    wc_ax.imshow(wordcloud, interpolation='bilinear')
+    wc_ax.axis("off")
+    st.pyplot(wc_fig)
+else:
+    st.info("Tidak ditemukan komentar yang mengandung ujaran kebencian pada dataset.")
+
 # --- Input komentar baru ---
 st.write("---")
 st.subheader("Uji Komentar Baru")
@@ -66,3 +90,9 @@ if st.button("Prediksi Klaster"):
         vectorized = vectorizer.transform([clean_komentar])
         cluster_pred = model.predict(vectorized)[0]
         st.success(f"Komentar tersebut masuk dalam **Cluster {cluster_pred}**")
+
+        is_hate = deteksi_ujaran_kebencian(clean_komentar)
+        if is_hate:
+            st.error("Komentar ini terdeteksi mengandung **ujaran kebencian** ⚠️")
+        else:
+            st.info("Komentar ini **tidak mengandung ujaran kebencian** ✅")
