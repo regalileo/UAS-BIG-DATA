@@ -45,7 +45,7 @@ def deteksi_ujaran_kebencian(teks):
     return any(kata in teks.split() for kata in kata_kasar)
 
 st.markdown("""
-    <h2 style='text-align: center;'>Visualisasi, Statistik, dan Deteksi Klaster Komentar</h2>
+    <h2 style='text-align: center;'>Visualisasi dan Deteksi Klaster Komentar Media Sosial</h2>
     <p style='text-align: center;'>TF-IDF + KMeans dengan Deteksi Ujaran Kebencian</p>
 """, unsafe_allow_html=True)
 
@@ -100,7 +100,7 @@ with col1:
 
 with col2:
     st.subheader("Uji Komentar Baru")
-    komentar_baru = st.text_area("Masukkan komentar netizen:", height=150)
+    komentar_baru = st.text_area("Masukkan komentar baru:", height=150)
 
     if st.button("Prediksi Klaster"):
         if komentar_baru.strip() == "":
