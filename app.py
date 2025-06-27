@@ -20,13 +20,14 @@ st.set_page_config(page_title="Klasterisasi Komentar Netizen", layout="wide")
 def load_model():
     vectorizer = joblib.load("vectorizer_tfidf_kmeans.pkl")
     model = joblib.load("model_kmeans.pkl")
-    return vectorizer, model
+    pca = joblib.load("pca_model.pkl")  # Tambahan: load PCA
+    return vectorizer, model, pca
 
 @st.cache_data
 def load_data():
     return joblib.load("data_clustered.pkl")
 
-vectorizer, model = load_model()
+vectorizer, model, pca = load_model()
 df = load_data()
 
 # --- Clean function ---
@@ -63,19 +64,8 @@ st.markdown("""
 
 st.write("---")
 
-# --- Rehitung PCA ---
-def get_pca(df_in, vectorizer_in):
-    X_local = vectorizer_in.transform(df_in['clean'])
-    pca_local = PCA(n_components=2, random_state=42)
-    x_pca_local = pca_local.fit_transform(X_local.toarray())
-    return X_local, pca_local, x_pca_local
-
-# --- Hitung PCA dan centroid saat aplikasi berjalan, hindari error cache ---
-with st.spinner("Memproses PCA dan deteksi ujaran kebencian..."):
-    X, pca, X_pca = get_pca(df, vectorizer)
-    df['pca1'] = X_pca[:, 0]
-    df['pca2'] = X_pca[:, 1]
-    df['is_hate'] = df['clean'].apply(deteksi_ujaran_kebencian)
+with st.spinner("Memproses data..."):
+    X = vectorizer.transform(df['clean'])
     df['cluster'] = df['cluster'].astype(int)
     centroids = model.cluster_centers_
     centroids_pca = pca.transform(centroids)
