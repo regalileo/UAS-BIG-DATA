@@ -111,7 +111,7 @@ with col1:
             mi_scores = mutual_info_classif(X_arr, df['cluster'], discrete_features=True)
             top_idx = np.argsort(mi_scores)[::-1][:10]
             top_words = [vectorizer.get_feature_names_out()[i] for i in top_idx]
-            top_vals = mi_scores[top_idx]
+            top_vals = mi_scores[top_idx]https://colab.research.google.com/?authuser=1
             top_df = pd.DataFrame({"Fitur": top_words, "MI Score": top_vals})
             st.dataframe(top_df)
 
@@ -120,22 +120,22 @@ with col2:
     komentar_baru = st.text_area("Masukkan komentar netizen:", height=150)
 
     if st.button("Prediksi Klaster"):
-    if komentar_baru.strip() == "":
-        st.warning("Komentar tidak boleh kosong!")
-    else:
-        try:
-            clean_komentar = clean_text(komentar_baru)
-            st.write("✅ Teks dibersihkan")
-            vectorized = vectorizer.transform([clean_komentar])
-            st.write("✅ Teks berhasil di-transform")
-            cluster_pred = model.predict(vectorized)[0]
-            st.success(f"Komentar tersebut masuk dalam **Cluster {cluster_pred}**")
+        if komentar_baru.strip() == "":
+            st.warning("Komentar tidak boleh kosong!")
+        else:
+            try:
+                clean_komentar = clean_text(komentar_baru)
+                st.write("✅ Teks dibersihkan")
+                vectorized = vectorizer.transform([clean_komentar])
+                st.write("✅ Teks berhasil di-transform")
+                cluster_pred = model.predict(vectorized)[0]
+                st.success(f"Komentar tersebut masuk dalam **Cluster {cluster_pred}**")
 
-            is_hate = deteksi_ujaran_kebencian(clean_komentar)
-            if is_hate:
-                st.error("Komentar ini terdeteksi mengandung **ujaran kebencian** ⚠️")
-            else:
-                st.info("Komentar ini **tidak mengandung ujaran kebencian** ✅")
-        except Exception as e:
-            st.error("❌ Terjadi error saat memproses komentar.")
-            st.exception(e)
+                is_hate = deteksi_ujaran_kebencian(clean_komentar)
+                if is_hate:
+                    st.error("Komentar ini terdeteksi mengandung **ujaran kebencian** ⚠️")
+                else:
+                    st.info("Komentar ini **tidak mengandung ujaran kebencian** ✅")
+            except Exception as e:
+                st.error("❌ Terjadi error saat memproses komentar.")
+                st.exception(e)
