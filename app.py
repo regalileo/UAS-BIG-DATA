@@ -120,11 +120,14 @@ with col2:
     komentar_baru = st.text_area("Masukkan komentar netizen:", height=150)
 
     if st.button("Prediksi Klaster"):
-        if komentar_baru.strip() == "":
-            st.warning("Komentar tidak boleh kosong!")
-        else:
+    if komentar_baru.strip() == "":
+        st.warning("Komentar tidak boleh kosong!")
+    else:
+        try:
             clean_komentar = clean_text(komentar_baru)
+            st.write("✅ Teks dibersihkan")
             vectorized = vectorizer.transform([clean_komentar])
+            st.write("✅ Teks berhasil di-transform")
             cluster_pred = model.predict(vectorized)[0]
             st.success(f"Komentar tersebut masuk dalam **Cluster {cluster_pred}**")
 
@@ -133,3 +136,6 @@ with col2:
                 st.error("Komentar ini terdeteksi mengandung **ujaran kebencian** ⚠️")
             else:
                 st.info("Komentar ini **tidak mengandung ujaran kebencian** ✅")
+        except Exception as e:
+            st.error("❌ Terjadi error saat memproses komentar.")
+            st.exception(e)
