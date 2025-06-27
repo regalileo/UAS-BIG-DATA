@@ -1,8 +1,9 @@
 streamlit
 scikit-learn
+joblib
 pandas
 matplotlib
 seaborn
-joblib
 wordcloud
+numpy
 requests
