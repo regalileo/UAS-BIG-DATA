@@ -63,7 +63,7 @@ st.write("---")
 
 # --- Rehitung PCA ---
 @st.cache_resource
-def get_pca(df, vectorizer):
+UnhashableParamError: Clustering metrics expects discrete values but received continuous values...
     X = vectorizer.transform(df['clean'])
     pca = PCA(n_components=2, random_state=42)
     x_pca = pca.fit_transform(X.toarray())
