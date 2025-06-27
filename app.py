@@ -1,4 +1,4 @@
-# app.py - Streamlit Clustering Viewer + Deteksi Komentar + Statistik Klaster Interaktif
+# app.py - Streamlit Clustering Viewer
 import streamlit as st
 import joblib
 import pandas as pd
@@ -68,15 +68,15 @@ def get_pca(df_in, vectorizer_in):
     x_pca_local = pca_local.fit_transform(X_local.toarray())
     return X_local, pca_local, x_pca_local
 
-with st.spinner("Menghitung ulang PCA..."):
+# --- Hitung PCA dan centroid saat aplikasi berjalan, hindari error cache ---
+with st.spinner("Memproses PCA dan deteksi ujaran kebencian..."):
     X, pca, X_pca = get_pca(df, vectorizer)
-df['pca1'] = X_pca[:, 0]
-df['pca2'] = X_pca[:, 1]
-df['is_hate'] = df['clean'].apply(deteksi_ujaran_kebencian)
-
-# --- Centroid ---
-centroids = model.cluster_centers_
-centroids_pca = pca.transform(centroids)
+    df['pca1'] = X_pca[:, 0]
+    df['pca2'] = X_pca[:, 1]
+    df['is_hate'] = df['clean'].apply(deteksi_ujaran_kebencian)
+    df['cluster'] = df['cluster'].astype(int)
+    centroids = model.cluster_centers_
+    centroids_pca = pca.transform(centroids)
 
 # --- Layout utama ---
 col1, col2 = st.columns([2, 1])
@@ -107,7 +107,6 @@ with col1:
     with st.expander("Top Fitur Pembeda (Mutual Info)"):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            df['cluster'] = df['cluster'].astype(int)
             X_arr = X.toarray()
             mi_scores = mutual_info_classif(X_arr, df['cluster'], discrete_features=True)
             top_idx = np.argsort(mi_scores)[::-1][:10]
