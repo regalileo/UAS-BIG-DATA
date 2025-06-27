@@ -62,12 +62,11 @@ st.markdown("""
 st.write("---")
 
 # --- Rehitung PCA ---
-@st.cache_resource
-def get_pca(df, vectorizer):
-    X = vectorizer.transform(df['clean'])
-    pca = PCA(n_components=2, random_state=42)
-    x_pca = pca.fit_transform(X.toarray())
-    return X, pca, x_pca
+def get_pca(df_in, vectorizer_in):
+    X_local = vectorizer_in.transform(df_in['clean'])
+    pca_local = PCA(n_components=2, random_state=42)
+    x_pca_local = pca_local.fit_transform(X_local.toarray())
+    return X_local, pca_local, x_pca_local
 
 X, pca, X_pca = get_pca(df, vectorizer)
 df['pca1'] = X_pca[:, 0]
