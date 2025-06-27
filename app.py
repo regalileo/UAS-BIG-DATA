@@ -62,7 +62,7 @@ st.markdown("""
 st.write("---")
 
 # --- Rehitung PCA ---
-@st.cache_data
+@st.cache_resource
 def get_pca(df, vectorizer):
     X = vectorizer.transform(df['clean'])
     pca = PCA(n_components=2, random_state=42)
