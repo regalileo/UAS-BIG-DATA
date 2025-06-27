@@ -15,9 +15,21 @@ import numpy as np
 st.set_page_config(page_title="Klasterisasi Komentar Netizen", layout="wide")
 
 # --- Load model dan data ---
-vectorizer = joblib.load("vectorizer_tfidf_kmeans.pkl")
-model = joblib.load("model_kmeans.pkl")
-df = joblib.load("data_clustered.pkl")
+@st.cache_resource
+def load_vectorizer():
+    return joblib.load("vectorizer_tfidf_kmeans.pkl")
+
+@st.cache_resource
+def load_model():
+    return joblib.load("model_kmeans.pkl")
+
+@st.cache_data
+def load_dataframe():
+    return joblib.load("data_clustered.pkl")
+
+vectorizer = load_vectorizer()
+model = load_model()
+df = load_dataframe()
 
 # --- Clean function ---
 def clean_text(text):
