@@ -20,7 +20,7 @@ st.set_page_config(page_title="Klasterisasi Komentar Netizen", layout="wide")
 def load_model():
     vectorizer = joblib.load("vectorizer_tfidf_kmeans.pkl")
     model = joblib.load("model_kmeans.pkl")
-    pca = joblib.load("pca_model.pkl")  # Tambahan: load PCA
+    pca = joblib.load("pca_model.pkl") 
     return vectorizer, model, pca
 
 @st.cache_data
@@ -45,7 +45,7 @@ def load_kata_kasar_from_url():
     url = "https://raw.githubusercontent.com/regalileo/UAS-BIG-DATA/main/kata_kasar.txt"
     try:
         response = requests.get(url, timeout=10)
-        response.raise_for_status()  # Raise error if response is bad
+        response.raise_for_status() 
         lines = response.text.splitlines()
         return set(k.strip() for k in lines if k.strip())
     except Exception as e:
