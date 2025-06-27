@@ -20,16 +20,26 @@ def load_vectorizer():
     return joblib.load("vectorizer_tfidf_kmeans.pkl")
 
 @st.cache_resource
-def load_model():
-    return joblib.load("model_kmeans.pkl")
+try:
+    @st.cache_resource
+    def load_vectorizer():
+        return joblib.load("vectorizer_tfidf_kmeans.pkl")
 
-@st.cache_data
-def load_dataframe():
-    return joblib.load("data_clustered.pkl")
+    @st.cache_resource
+    def load_model():
+        return joblib.load("model_kmeans.pkl")
 
-vectorizer = load_vectorizer()
-model = load_model()
-df = load_dataframe()
+    @st.cache_data
+    def load_dataframe():
+        return joblib.load("data_clustered.pkl")
+
+    vectorizer = load_vectorizer()
+    model = load_model()
+    df = load_dataframe()
+
+except Exception as e:
+    st.error(f"Gagal memuat file atau model: {e}")
+    st.stop()
 
 # --- Clean function ---
 def clean_text(text):
