@@ -87,8 +87,10 @@ cluster_interpretations = {
 
 # Judul aplikasi
 st.markdown("""
-    <h3 style='text-align: center;'>Visualisasi & Deteksi Klaster Komentar</h3>
-    <p style='text-align: center; font-size: 14px;'>Aplikasi KMeans + TF-IDF + PCA</p>
+    <div style='margin-top: -50px;'>
+        <h3 style='text-align: center;'>Visualisasi & Deteksi Klaster Komentar</h3>
+        <p style='text-align: center; font-size: 14px;'>Aplikasi KMeans + TF-IDF + PCA</p>
+    </div>
 """, unsafe_allow_html=True)
 
 st.write("---")
@@ -105,7 +107,7 @@ with st.spinner("Memuat visualisasi dan fitur analitik..."):
 
     with new_tabs[0]:
         st.subheader("Visualisasi PCA Klaster Komentar")
-        fig, ax = plt.subplots(figsize=(9, 5))
+        fig, ax = plt.subplots(figsize=(9, 4))  # ukuran dipendekkan
         sns.scatterplot(data=df, x='pca1', y='pca2', hue='cluster', palette='viridis', ax=ax)
         ax.scatter(centroids_pca[:, 0], centroids_pca[:, 1], c='red', marker='X', s=150, edgecolor='black')
         ax.set_xlabel("Komponen 1"); ax.set_ylabel("Komponen 2")
@@ -116,7 +118,7 @@ with st.spinner("Memuat visualisasi dan fitur analitik..."):
         st.subheader("Distribusi Komentar per Klaster")
         cluster_counts = df['cluster'].value_counts().sort_index()
         labels = [f"Klaster {i}: {cluster_interpretations.get(i)} ({n})" for i, n in cluster_counts.items()]
-        fig2, ax2 = plt.subplots(figsize=(6, 6))
+        fig2, ax2 = plt.subplots(figsize=(6, 5))  # ukuran dipendekkan
         wedges, texts, autotexts = ax2.pie(cluster_counts, autopct='%1.1f%%', startangle=90, wedgeprops={'width':0.4})
         ax2.axis('equal')
         ax2.legend(wedges, labels, loc='center left', bbox_to_anchor=(1, 0.5))
@@ -154,7 +156,7 @@ with st.spinner("Memuat visualisasi dan fitur analitik..."):
 
             # Plot PCA posisi komentar baru
             pca_new = pca.transform(X_new)
-            fig3, ax3 = plt.subplots(figsize=(8, 5))
+            fig3, ax3 = plt.subplots(figsize=(8, 4))  # ukuran dipendekkan
             sns.scatterplot(data=df, x='pca1', y='pca2', hue='cluster', palette='viridis', ax=ax3, legend=False)
             ax3.scatter(centroids_pca[:, 0], centroids_pca[:, 1], c='red', marker='X', s=150)
             ax3.scatter(pca_new[:, 0], pca_new[:, 1], c='black', s=250, marker='P', edgecolor='yellow')
@@ -166,7 +168,7 @@ with st.spinner("Memuat visualisasi dan fitur analitik..."):
         if 'clean' in df:
             all_words = ' '.join(df['clean'].dropna())
             wc = WordCloud(width=800, height=400, background_color='white').generate(all_words)
-            fig4, ax4 = plt.subplots(figsize=(10, 5))
+            fig4, ax4 = plt.subplots(figsize=(9, 4))  # ukuran dipendekkan
             ax4.imshow(wc, interpolation='bilinear')
             ax4.axis('off')
             st.pyplot(fig4)
