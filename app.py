@@ -147,3 +147,6 @@ with tab2:
     idx_top = np.argsort(mi)[::-1][:10]
     top_words = vectorizer.get_feature_names_out()[idx_top]
     st.dataframe(pd.DataFrame({'Fitur': top_words, 'Skor MI': mi[idx_top].round(4)}))
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
