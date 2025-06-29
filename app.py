@@ -37,10 +37,12 @@ def load_model():
     return vectorizer, model, pca
 
 @st.cache_data
-def load_data(vectorizer, pca):
+def load_data():
     df = joblib.load("data_clustered.pkl")
     df['cluster'] = df['cluster'].astype(int)
     if 'pca1' not in df.columns:
+        vectorizer = joblib.load("vectorizer_tfidf_kmeans.pkl")
+        pca = joblib.load("pca_model.pkl")
         X = vectorizer.transform(df['clean'])
         pca_vals = pca.transform(X)
         df['pca1'], df['pca2'] = pca_vals[:, 0], pca_vals[:, 1]
@@ -57,7 +59,7 @@ def load_kata_kasar_from_url():
         return set()
 
 vectorizer, model, pca = load_model()
-df = load_data(vectorizer, pca)
+df = load_data()
 kata_kasar = load_kata_kasar_from_url()
 
 cluster_interpretations = {
