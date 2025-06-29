@@ -45,7 +45,7 @@ def load_data():
         df['cluster'] = df['cluster'].astype(int)
         # Memastikan 'pca1' dan 'pca2' ada untuk plotting jika belum ada di df yang dimuat
         # Ini adalah solusi darurat jika komponen PCA tidak disimpan secara eksplisit dengan df
-        # Dalam skenario nyata, pca.transform(vectorizer.transform(df['clean'])) akan dilakukan jika PCA tidak disimpan dengan df
+        # Dalam skenario nyata, pca.transform(vectorizer.transform(df['clean'])) would be done if PCA was not saved with df
         if 'pca1' not in df.columns or 'pca2' not in df.columns:
             st.warning("Kolom 'pca1' atau 'pca2' tidak ditemukan dalam data_clustered.pkl. Melakukan transformasi PCA ulang.")
             # Jika komponen PCA tidak disimpan, lakukan transformasi ulang dari teks bersih
@@ -145,17 +145,22 @@ with st.spinner("Memproses data untuk visualisasi..."):
     centroids = model.cluster_centers_
     centroids_pca = pca.transform(centroids)
 
-# --- Layout untuk Donut Chart di bagian atas ---
+# --- Donut Chart Klaster (diletakkan di bagian atas) ---
 st.subheader("Distribusi Komentar per Klaster")
 
 # Menghitung jumlah komentar per klaster dan mengurutkannya
 cluster_counts = df['cluster'].value_counts().sort_index()
 # Membuat label untuk donut chart dengan nama klaster dan jumlah
-labels = [f"Klaster {i}: {cluster_interpretations.get(i, 'Tidak Dikenal')}" for i in cluster_counts.index]
+labels = [f"Klaster {i}" for i in cluster_counts.index] # Labels without counts in pie
 # Memformat autopct untuk menampilkan persentase dan jumlah dalam dua baris
 autopct_format = lambda p: f'{p:.1f}%\n({int(p*sum(cluster_counts)/100)})'
 
-fig_donut, ax_donut = plt.subplots(figsize=(10, 10)) # Ukuran lebih besar
+# Mengatur gaya plot dan font untuk estetika yang lebih baik
+plt.style.use('seaborn-v0_8-darkgrid')
+plt.rcParams['font.family'] = 'Inter'
+
+# Membuat donut chart dengan ukuran yang lebih besar
+fig_donut, ax_donut = plt.subplots(figsize=(8, 8)) # Ukuran disesuaikan agar fit lebih baik
 wedges, texts, autotexts = ax_donut.pie(cluster_counts,
                                         autopct=autopct_format,
                                         startangle=90,
@@ -164,10 +169,10 @@ wedges, texts, autotexts = ax_donut.pie(cluster_counts,
 ax_donut.set_title("Distribusi Komentar per Klaster", fontsize=18, pad=20) # Judul lebih besar
 ax_donut.axis("equal") # Rasio aspek yang sama memastikan pie digambar sebagai lingkaran.
 
-# Membuat legenda terpisah di bawah plot
 st.pyplot(fig_donut) # Menampilkan donut chart di Streamlit
 
-st.markdown("### Legenda Donut Chart")
+# Legenda Donut Chart (diletakkan di bawah plot)
+st.markdown("### Legenda Klaster")
 # Menampilkan legenda dalam format tabel atau daftar di bawah donut chart
 legend_data = pd.DataFrame({
     "Klaster": [f"Klaster {i}" for i in cluster_counts.index],
@@ -177,21 +182,21 @@ legend_data = pd.DataFrame({
 st.dataframe(legend_data, hide_index=True)
 
 
-st.write("---") # Garis pemisah visual
+st.write("---") # Garis pemisah visual untuk memisahkan bagian-bagian utama
 
-# --- Tata letak utama menggunakan kolom (untuk PCA dan Uji Komentar) ---
-col1, col2 = st.columns([2, 1])
+# --- Tata letak dua kolom utama (untuk PCA dan Uji Komentar) ---
+col1, col2 = st.columns([2, 1]) # Kolom kiri 2x lebih lebar dari kolom kanan
 
 with col1:
     st.subheader("Visualisasi Klaster Dataset (Lanjutan)")
 
     # PCA Plot
     st.markdown("### PCA Plot Komentar dan Centroid Klaster")
-    # Mengatur gaya plot dan font untuk estetika yang lebih baik
+    # Mengatur gaya plot dan font untuk estetika yang lebih baik (diulang untuk konsistensi, walau sudah di atas)
     plt.style.use('seaborn-v0_8-darkgrid')
     plt.rcParams['font.family'] = 'Inter'
 
-    fig_pca, ax_pca = plt.subplots(figsize=(10, 6))
+    fig_pca, ax_pca = plt.subplots(figsize=(8, 5)) # Ukuran disesuaikan agar fit
     # Scatter plot titik data yang diwarnai berdasarkan klaster
     sns.scatterplot(data=df, x='pca1', y='pca2', hue='cluster',
                     palette='viridis', s=60, ax=ax_pca, alpha=0.7,
@@ -209,29 +214,28 @@ with col1:
     plt.tight_layout() # Menyesuaikan tata letak untuk mencegah label tumpang tindih
     st.pyplot(fig_pca) # Menampilkan plot PCA di Streamlit
 
-    # Statistik Deskriptif per Klaster
-    st.markdown("### Statistik Deskriptif Dimensi PCA per Klaster")
-    # Mengelompokkan data berdasarkan klaster dan menghitung statistik deskriptif untuk komponen PCA
-    df_stats = df.groupby('cluster')[['pca1', 'pca2']].agg(['mean', 'std', 'min', 'max']).round(4) # Lebih banyak desimal untuk presisi
-    st.dataframe(df_stats.style.set_properties(**{'font-size': '10pt'})) # Menyesuaikan ukuran font untuk dataframe
+    # Statistik Deskriptif per Klaster (dalam expander)
+    with st.expander("Statistik Deskriptif Dimensi PCA per Klaster"):
+        df_stats = df.groupby('cluster')[['pca1', 'pca2']].agg(['mean', 'std', 'min', 'max']).round(4) # Lebih banyak desimal untuk presisi
+        st.dataframe(df_stats.style.set_properties(**{'font-size': '10pt'})) # Menyesuaikan ukuran font untuk dataframe
 
-    # Top Fitur Pembeda (Mutual Info)
-    st.markdown("### Top Fitur Pembeda Antar Klaster (Mutual Information)")
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore") # Mengabaikan potensi peringatan dari mutual_info_classif
-        # Mengonversi sparse matrix ke dense array untuk mutual_info_classif jika belum
-        if hasattr(vectorizer.transform(df['clean']), 'toarray'):
-            X_arr = vectorizer.transform(df['clean']).toarray()
-        else:
-            X_arr = vectorizer.transform(df['clean']) # Sudah dense
-        
-        # Menghitung skor Mutual Information
-        mi_scores = mutual_info_classif(X_arr, df['cluster'], discrete_features=True)
-        top_idx = np.argsort(mi_scores)[::-1][:10] # Mendapatkan 10 indeks teratas
-        top_words = [vectorizer.get_feature_names_out()[i] for i in top_idx] # Mendapatkan kata-kata teratas
-        top_vals = mi_scores[top_idx] # Mendapatkan nilai skor MI teratas
-        top_df = pd.DataFrame({"Fitur": top_words, "Skor MI": top_vals.round(4)}) # Membulatkan skor MI
-        st.dataframe(top_df.style.set_properties(**{'font-size': '10pt'})) # Menampilkan dataframe fitur pembeda
+    # Top Fitur Pembeda (Mutual Info) (dalam expander)
+    with st.expander("Top Fitur Pembeda Antar Klaster (Mutual Information)"):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore") # Mengabaikan potensi peringatan dari mutual_info_classif
+            # Mengonversi sparse matrix ke dense array untuk mutual_info_classif jika belum
+            if hasattr(vectorizer.transform(df['clean']), 'toarray'):
+                X_arr = vectorizer.transform(df['clean']).toarray()
+            else:
+                X_arr = vectorizer.transform(df['clean']) # Sudah dense
+            
+            # Menghitung skor Mutual Information
+            mi_scores = mutual_info_classif(X_arr, df['cluster'], discrete_features=True)
+            top_idx = np.argsort(mi_scores)[::-1][:10] # Mendapatkan 10 indeks teratas
+            top_words = [vectorizer.get_feature_names_out()[i] for i in top_idx] # Mendapatkan kata-kata teratas
+            top_vals = mi_scores[top_idx] # Mendapatkan nilai skor MI teratas
+            top_df = pd.DataFrame({"Fitur": top_words, "Skor MI": top_vals.round(4)}) # Membulatkan skor MI
+            st.dataframe(top_df.style.set_properties(**{'font-size': '10pt'})) # Menampilkan dataframe fitur pembeda
 
 with col2:
     st.subheader("Uji Komentar Baru")
@@ -265,14 +269,14 @@ with col2:
                 else:
                     st.info("👍 Komentar ini **tidak mengandung ujaran kebencian**.")
 
-                # Visualisasi komentar baru pada PCA Plot
+                # Visualisasi komentar baru pada PCA Plot (dalam kolom yang sama)
                 st.markdown("---") # Garis pemisah
                 st.subheader("Posisi Komentar Baru pada PCA Plot")
                 # Transformasi PCA untuk komentar baru
                 new_comment_pca = pca.transform(vectorized_new_comment)
 
-                fig_new_pca, ax_new_pca = plt.subplots(figsize=(10, 6))
-                # Scatter plot data klaster yang ada
+                fig_new_pca, ax_new_pca = plt.subplots(figsize=(8, 5)) # Ukuran disesuaikan
+                # Scatter plot data klaster yang ada (tanpa legenda untuk menghemat ruang)
                 sns.scatterplot(data=df, x='pca1', y='pca2', hue='cluster',
                                 palette='viridis', s=60, ax=ax_new_pca, alpha=0.6, legend=False)
                 # Plot centroid klaster yang ada
@@ -281,11 +285,12 @@ with col2:
                 # Plot komentar baru sebagai titik terpisah
                 ax_new_pca.scatter(new_comment_pca[:, 0], new_comment_pca[:, 1],
                                    c='black', s=350, marker='P', label='Komentar Baru', edgecolor='yellow', linewidth=2) # P untuk diprediksi
-                ax_new_pca.set_title("PCA Plot: Komentar Baru (Tanda P)", fontsize=16)
-                ax_new_pca.set_xlabel("Komponen Utama 1", fontsize=12)
-                ax_new_pca.set_ylabel("Komponen Utama 2", fontsize=12)
+                ax_new_pca.set_title("PCA Plot: Komentar Baru (Tanda P)", fontsize=14) # Ukuran judul disesuaikan
+                ax_new_pca.set_xlabel("Komponen Utama 1", fontsize=10)
+                ax_new_pca.set_ylabel("Komponen Utama 2", fontsize=10)
                 ax_new_pca.grid(True, linestyle='--', alpha=0.6)
-                ax_new_pca.legend(title='Legenda', bbox_to_anchor=(1.05, 1), loc='upper left')
+                # Legenda dapat ditampilkan di luar plot atau disederhanakan
+                ax_new_pca.legend(title='Legenda', loc='upper left', bbox_to_anchor=(1.05, 1)) # Posisi legenda
                 plt.tight_layout()
                 st.pyplot(fig_new_pca) # Menampilkan plot komentar baru di Streamlit
 
@@ -294,17 +299,18 @@ with col2:
                 st.error("❌ Terjadi error saat memproses komentar.")
                 st.exception(e)
 
-# Menampilkan WordCloud dari semua klaster
+# Menampilkan WordCloud dari semua klaster (dalam expander di bagian bawah)
 st.write("---") # Garis pemisah
-st.subheader("Word Cloud Keseluruhan Komentar")
-# Menggabungkan semua teks bersih menjadi satu string
-all_words = ' '.join(df['clean'].dropna())
-if all_words:
-    # Membuat dan menampilkan WordCloud
-    wordcloud = WordCloud(width=800, height=400, background_color='white', colormap='viridis').generate(all_words)
-    fig_wc, ax_wc = plt.subplots(figsize=(10, 5))
-    ax_wc.imshow(wordcloud, interpolation='bilinear')
-    ax_wc.axis('off') # Menghilangkan sumbu
-    st.pyplot(fig_wc) # Menampilkan word cloud di Streamlit
-else:
-    st.info("Tidak ada data teks untuk membuat Word Cloud.")
+with st.expander("Word Cloud Keseluruhan Komentar"):
+    st.subheader("Word Cloud Keseluruhan Komentar")
+    # Menggabungkan semua teks bersih menjadi satu string
+    all_words = ' '.join(df['clean'].dropna())
+    if all_words:
+        # Membuat dan menampilkan WordCloud
+        wordcloud = WordCloud(width=800, height=400, background_color='white', colormap='viridis').generate(all_words)
+        fig_wc, ax_wc = plt.subplots(figsize=(10, 5))
+        ax_wc.imshow(wordcloud, interpolation='bilinear')
+        ax_wc.axis('off') # Menghilangkan sumbu
+        st.pyplot(fig_wc) # Menampilkan word cloud di Streamlit
+    else:
+        st.info("Tidak ada data teks untuk membuat Word Cloud.")
