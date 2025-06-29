@@ -137,10 +137,6 @@ st.markdown("""
 
 st.write("---") # Garis pemisah visual
 
-# --- Tata letak utama menggunakan kolom ---
-# col1 untuk visualisasi, col2 untuk input komentar baru dan prediksi
-col1, col2 = st.columns([2, 1])
-
 # Spinner untuk menunjukkan bahwa data sedang diproses
 with st.spinner("Memproses data untuk visualisasi..."):
     # Mentransformasi teks bersih dari dataframe ke representasi TF-IDF
@@ -149,8 +145,45 @@ with st.spinner("Memproses data untuk visualisasi..."):
     centroids = model.cluster_centers_
     centroids_pca = pca.transform(centroids)
 
+# --- Layout untuk Donut Chart di bagian atas ---
+st.subheader("Distribusi Komentar per Klaster")
+
+# Menghitung jumlah komentar per klaster dan mengurutkannya
+cluster_counts = df['cluster'].value_counts().sort_index()
+# Membuat label untuk donut chart dengan nama klaster dan jumlah
+labels = [f"Klaster {i}: {cluster_interpretations.get(i, 'Tidak Dikenal')}" for i in cluster_counts.index]
+# Memformat autopct untuk menampilkan persentase dan jumlah dalam dua baris
+autopct_format = lambda p: f'{p:.1f}%\n({int(p*sum(cluster_counts)/100)})'
+
+fig_donut, ax_donut = plt.subplots(figsize=(10, 10)) # Ukuran lebih besar
+wedges, texts, autotexts = ax_donut.pie(cluster_counts,
+                                        autopct=autopct_format,
+                                        startangle=90,
+                                        wedgeprops={'width': 0.4, 'edgecolor': 'white'},
+                                        textprops={'fontsize': 10})
+ax_donut.set_title("Distribusi Komentar per Klaster", fontsize=18, pad=20) # Judul lebih besar
+ax_donut.axis("equal") # Rasio aspek yang sama memastikan pie digambar sebagai lingkaran.
+
+# Membuat legenda terpisah di bawah plot
+st.pyplot(fig_donut) # Menampilkan donut chart di Streamlit
+
+st.markdown("### Legenda Donut Chart")
+# Menampilkan legenda dalam format tabel atau daftar di bawah donut chart
+legend_data = pd.DataFrame({
+    "Klaster": [f"Klaster {i}" for i in cluster_counts.index],
+    "Interpretasi": [cluster_interpretations.get(i, 'Tidak Dikenal') for i in cluster_counts.index],
+    "Jumlah Komentar": cluster_counts.values
+})
+st.dataframe(legend_data, hide_index=True)
+
+
+st.write("---") # Garis pemisah visual
+
+# --- Tata letak utama menggunakan kolom (untuk PCA dan Uji Komentar) ---
+col1, col2 = st.columns([2, 1])
+
 with col1:
-    st.subheader("Visualisasi Klaster Dataset")
+    st.subheader("Visualisasi Klaster Dataset (Lanjutan)")
 
     # PCA Plot
     st.markdown("### PCA Plot Komentar dan Centroid Klaster")
@@ -175,30 +208,6 @@ with col1:
     ax_pca.legend(title='Klaster', bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout() # Menyesuaikan tata letak untuk mencegah label tumpang tindih
     st.pyplot(fig_pca) # Menampilkan plot PCA di Streamlit
-
-    # Donut Chart Klaster
-    st.markdown("### Distribusi Komentar per Klaster")
-    # Menghitung jumlah komentar per klaster dan mengurutkannya
-    cluster_counts = df['cluster'].value_counts().sort_index()
-    # Membuat label untuk donut chart dengan nama klaster dan jumlah
-    labels = [f"Klaster {i}: {cluster_interpretations.get(i, 'Tidak Dikenal')} ({n})" for i, n in cluster_counts.items()]
-
-    fig_donut, ax_donut = plt.subplots(figsize=(7, 7))
-    # Membuat donut chart
-    wedges, texts, autotexts = ax_donut.pie(cluster_counts,
-                                            autopct=lambda p: f'{p:.1f}%\n({int(p*sum(cluster_counts)/100)})', # Menampilkan persentase dan jumlah
-                                            startangle=90,
-                                            wedgeprops={'width': 0.4, 'edgecolor': 'white'},
-                                            textprops={'fontsize': 10})
-    ax_donut.set_title("Distribusi Komentar per Klaster", fontsize=16)
-    ax_donut.axis("equal") # Rasio aspek yang sama memastikan pie digambar sebagai lingkaran.
-    # Menambahkan legenda di luar pie untuk keterbacaan yang lebih baik
-    ax_donut.legend(wedges, labels,
-                    title="Klaster & Jumlah",
-                    loc="center left",
-                    bbox_to_anchor=(1, 0, 0.5, 1))
-    plt.tight_layout()
-    st.pyplot(fig_donut) # Menampilkan donut chart di Streamlit
 
     # Statistik Deskriptif per Klaster
     st.markdown("### Statistik Deskriptif Dimensi PCA per Klaster")
