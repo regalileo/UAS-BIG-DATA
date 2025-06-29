@@ -37,7 +37,7 @@ def load_model():
     return vectorizer, model, pca
 
 @st.cache_data
-def load_data():
+def load_data(vectorizer, pca):
     df = joblib.load("data_clustered.pkl")
     df['cluster'] = df['cluster'].astype(int)
     if 'pca1' not in df.columns:
@@ -57,7 +57,7 @@ def load_kata_kasar_from_url():
         return set()
 
 vectorizer, model, pca = load_model()
-df = load_data()
+df = load_data(vectorizer, pca)
 kata_kasar = load_kata_kasar_from_url()
 
 cluster_interpretations = {
@@ -147,6 +147,3 @@ with tab2:
     idx_top = np.argsort(mi)[::-1][:10]
     top_words = vectorizer.get_feature_names_out()[idx_top]
     st.dataframe(pd.DataFrame({'Fitur': top_words, 'Skor MI': mi[idx_top].round(4)}))
-
-import logging
-logging.basicConfig(level=logging.DEBUG)
